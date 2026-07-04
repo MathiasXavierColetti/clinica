@@ -1,0 +1,26 @@
+# Sistema de Gestão de Clínica
+
+Este repositório contém o Sistema de Gestão de Clínica, uma aplicação full-stack desenvolvida para centralizar e otimizar o gerenciamento de atendimentos médicos, agendamentos e processos administrativos. A solução foi projetada com foco em organização, escalabilidade e facilidade de manutenção, proporcionando uma experiência eficiente tanto para profissionais da saúde quanto para equipes administrativas.
+
+## 🚀 Tecnologias Utilizadas
+
+O projeto foi desenvolvido utilizando as seguintes tecnologias:
+
+* **Frontend:** Angular 18+
+* **Backend:** Java 21 com Spring Boot 3
+* **Banco de Dados:** H2 Database (utilizado para desenvolvimento e visualização de dados em tempo real)
+* **Containerização:** Docker
+
+## 📦 Estrutura do Projeto
+
+```text
+CLINICA/
+├── backend/        # Código-fonte da API desenvolvida com Spring Boot
+├── frontend/       # Código-fonte da aplicação Angular
+├── Dockerfile      # Configuração para construção e execução da aplicação em containers
+└── .dockerignore   # Arquivos e diretórios ignorados durante o processo de build do Docker
+```
+
+## 🎯 Objetivo
+
+O Sistema de Gestão de Clínica tem como objetivo centralizar o controle de pacientes, consultas e atendimentos médicos em uma única plataforma, promovendo maior eficiência operacional, organização das informações e agilidade nos processos administrativos da clínica.
