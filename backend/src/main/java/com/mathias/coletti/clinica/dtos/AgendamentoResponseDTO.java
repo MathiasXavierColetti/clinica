@@ -1,10 +1,17 @@
 package com.mathias.coletti.clinica.dtos;
 
+import com.mathias.coletti.clinica.enums.StatusAgendamento;
+
 import java.time.LocalDateTime;
 
-public record AgendamentoResponseDTO(Long id,
-                                     String pacienteNome,
-                                     String medicoNome, String especialidadeNome,
-                                     LocalDateTime dataHora, LocalDateTime dataHoraFim, // <-- Adicione esta linha aqui
-                                     String observacoes) {
+public record AgendamentoResponseDTO(
+        Long id,
+        String paciente,
+        String medico,
+        String especialidade,
+        LocalDateTime dataHoraInicio,
+        LocalDateTime dataHoraFim,
+        String observacoes,
+        StatusAgendamento status
+) {
 }

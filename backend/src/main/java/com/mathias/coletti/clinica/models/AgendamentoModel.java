@@ -1,6 +1,7 @@
 package com.mathias.coletti.clinica.models;
 
 
+import com.mathias.coletti.clinica.enums.StatusAgendamento;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,7 +23,8 @@ public class AgendamentoModel {
     @ManyToOne
     @JoinColumn(name = "paciente_id", nullable = false)
     private PacienteModel paciente;
-
+    @Enumerated(EnumType.STRING)
+    private StatusAgendamento status;
     @ManyToOne
     @JoinColumn(name = "medico_id", nullable = false)
     private MedicoModel medico;

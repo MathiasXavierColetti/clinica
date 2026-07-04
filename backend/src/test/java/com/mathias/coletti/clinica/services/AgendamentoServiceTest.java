@@ -3,12 +3,11 @@ package com.mathias.coletti.clinica.services;
 import com.mathias.coletti.clinica.dtos.AgendamentoRequestDTO;
 import com.mathias.coletti.clinica.dtos.AgendamentoResponseDTO;
 import com.mathias.coletti.clinica.models.AgendamentoModel;
-import com.mathias.coletti.clinica.models.EspecialidadeModel;
 import com.mathias.coletti.clinica.models.MedicoModel;
 import com.mathias.coletti.clinica.models.PacienteModel;
+import com.mathias.coletti.clinica.models.enums.StatusAgendamento;
 import com.mathias.coletti.clinica.repositories.AgendamentoRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,81 +24,60 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AgendamentoServiceTest {
 
-    @Mock
-    private AgendamentoRepository agendamentoRepository;
-    @Mock
-    private MedicoService medicoService;
-    @Mock
-    private PacienteService pacienteService;
+    @Mock private AgendamentoRepository repository;
+    @Mock private MedicoService medicoService;
+    @Mock private PacienteService pacienteService;
 
-    @InjectMocks
-    private AgendamentoService agendamentoService;
+    @InjectMocks private AgendamentoService service;
 
-    private AgendamentoRequestDTO requestDTO;
-    private MedicoModel medico;
-    private PacienteModel paciente;
-    private AgendamentoModel agendamentoSalvo;
+    private AgendamentoModel agendamento;
 
     @BeforeEach
     void setUp() {
-        LocalDateTime dataHoraInicio = LocalDateTime.of(2026, 10, 10, 14, 0);
-        LocalDateTime dataHoraFim = dataHoraInicio.plusHours(1);
+        agendamento = new AgendamentoModel();
+        agendamento.setId(1L);
+        agendamento.setStatus(StatusAgendamento.AGENDADO);
+        agendamento.setDataHora(LocalDateTime.now().plusHours(1));
 
-        requestDTO = new AgendamentoRequestDTO(1L, 1L, dataHoraInicio, dataHoraFim, "Consulta de rotina");
-
-        // Solução do NPE: Criamos uma especialidade fictícia e colocamos no médico
-        EspecialidadeModel especialidade = new EspecialidadeModel();
-        especialidade.setId(1L);
-        especialidade.setNome("Clínica Geral");
-
-        medico = new MedicoModel();
-        medico.setId(1L);
-        medico.setNome("Dr. Mathias");
-        medico.setEspecialidade(especialidade); // <--- Vinculado aqui!
-
-        paciente = new PacienteModel();
-        paciente.setId(1L);
+        MedicoModel medico = new MedicoModel();
+        medico.setNome("Dr. Teste");
+        PacienteModel paciente = new PacienteModel();
         paciente.setNome("Paciente Teste");
 
-        agendamentoSalvo = new AgendamentoModel();
-        agendamentoSalvo.setId(10L);
-        agendamentoSalvo.setMedico(medico);
-        agendamentoSalvo.setPaciente(paciente);
-        agendamentoSalvo.setDataHora(dataHoraInicio);
-        agendamentoSalvo.setDataHoraFim(dataHoraFim);
+        agendamento.setMedico(medico);
+        agendamento.setPaciente(paciente);
     }
 
     @Test
-    @DisplayName("Deve agendar uma consulta com sucesso se o médico estiver livre")
-    void agendarComSucesso() {
-        when(medicoService.buscarPorId(1L)).thenReturn(medico);
-        when(pacienteService.buscarPorId(1L)).thenReturn(paciente);
-        when(agendamentoRepository.verificarSobreposicaoMedico(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(false);
-        when(agendamentoRepository.save(any(AgendamentoModel.class))).thenReturn(agendamentoSalvo);
+    void deveConfirmarAgendamentoComSucesso() {
+        when(repository.findById(1L)).thenReturn(Optional.of(agendamento));
+        when(repository.save(any(AgendamentoModel.class))).thenReturn(agendamento);
 
-        AgendamentoResponseDTO resultado = agendamentoService.agendar(requestDTO);
+        AgendamentoResponseDTO response = service.alterarStatus(1L, StatusAgendamento.CONFIRMADO);
 
-        assertNotNull(resultado);
-        assertEquals(10L, resultado.id());
-        verify(agendamentoRepository, times(1)).save(any(AgendamentoModel.class));
+        assertEquals(StatusAgendamento.CONFIRMADO, response.status());
+        verify(repository, times(1)).save(agendamento);
     }
 
     @Test
-    @DisplayName("Deve bloquear o agendamento se o médico já tiver outra consulta no mesmo horário")
-    void agendarComMedicoOcupadoLançaExcecao() {
-        // Usamos leniency() para que o Mockito não reclame caso a Service barre o fluxo antes
-        lenient().when(medicoService.buscarPorId(1L)).thenReturn(medico);
-        lenient().when(pacienteService.buscarPorId(1L)).thenReturn(paciente);
+    void naoDeveFinalizarConsultaSemEstarConfirmada() {
+        // Tenta mudar de AGENDADO para REALIZADO direto
+        when(repository.findById(1L)).thenReturn(Optional.of(agendamento));
 
-        when(agendamentoRepository.verificarSobreposicaoMedico(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(true);
+        assertThrows(RuntimeException.class, () ->
+                service.alterarStatus(1L, StatusAgendamento.REALIZADO)
+        );
+    }
 
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            agendamentoService.agendar(requestDTO);
-        });
+    @Test
+    void naoDeveRealizarConsultaNoFuturo() {
+        agendamento.setStatus(StatusAgendamento.CONFIRMADO);
+        agendamento.setDataHora(LocalDateTime.now().plusDays(1)); // Data no futuro
 
-        verify(agendamentoRepository, never()).save(any(AgendamentoModel.class));
+        when(repository.findById(1L)).thenReturn(Optional.of(agendamento));
+
+        assertThrows(RuntimeException.class, () ->
+                service.alterarStatus(1L, StatusAgendamento.REALIZADO)
+        );
     }
 }

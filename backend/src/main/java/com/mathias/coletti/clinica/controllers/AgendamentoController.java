@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/especialidades")
+@RequestMapping("/api/agendamentos")
 @CrossOrigin(origins = "*")
 public class AgendamentoController {
     // Altere para a Service correta:
