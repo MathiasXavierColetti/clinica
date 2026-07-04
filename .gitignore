@@ -1,0 +1,23 @@
+# ==========================================
+# BACK-END (Spring Boot)
+# ==========================================
+backend/target/
+backend/.idea/
+backend/*.iml
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+
+# ==========================================
+# FRONT-END (Angular / Node)
+# ==========================================
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.vscode/
+
+# ==========================================
+# GERAIS
+# ==========================================
+.DS_Store
+Thumbs.db
