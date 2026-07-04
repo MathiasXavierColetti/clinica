@@ -1,0 +1,23 @@
+<div class="d-flex vh-100">
+  <aside class="bg-white border-end" style="width: 240px;">
+    <div class="p-4 fw-bold text-primary">Clínica Coletti</div>
+    <nav class="px-3">
+      <!-- O routerLink aqui faz a mágica nativa -->
+      <a routerLink="/dashboard" class="nav-link-med" routerLinkActive="active-route">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+      <a routerLink="/especialidades" class="nav-link-med" routerLinkActive="active-route">
+        <i class="bi bi-tags-fill"></i> Especialidades
+      </a>
+    </nav>
+  </aside>
+
+  <div class="flex-grow-1 overflow-auto bg-light">
+    <header class="bg-white border-bottom p-3">
+      <h1 class="fs-5 m-0 fw-semibold">Dashboard</h1>
+    </header>
+
+    <!-- É AQUI que o Dashboard aparece -->
+    <router-outlet></router-outlet>
+  </div>
+</div>
