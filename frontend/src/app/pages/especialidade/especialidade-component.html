@@ -1,3 +1,68 @@
-<h1 style="color:red">
-  TESTE MATHIAS 999999
-</h1>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Especialidades</h2>
+    <button (click)="abrirFormulario()" class="btn btn-primary">
+      + Nova Especialidade
+    </button>
+
+  </div>
+
+
+  <table class="table table-hover">
+    <thead class="table-light">
+    <tr>
+      <th>#</th>
+      <th>Nome</th>
+      <th>Descrição</th>
+      <th class="text-end">Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+
+      @for (esp of especialidades(); track esp.id) {
+        <tr>
+          <td>{{ esp.id }}</td>
+          <td>{{ esp.nome }}</td>
+          <td>{{ esp.descricao }}</td>
+          <td class="text-end">
+            <button (click)="abrirFormulario(esp)" class="btn btn-sm btn-outline-primary me-2">Editar</button>
+            <button (click)="excluir(esp.id ?? null)" class="btn btn-sm btn-outline-danger">
+              Excluir
+            </button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4" class="text-center">Nenhuma especialidade cadastrada.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (exibirFormulario()) {
+    <div class="card mt-4 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">{{ modoEdicao() ? 'Editar Especialidade' : 'Cadastrar Nova Especialidade' }}</h5>
+
+        <div class="mb-3">
+          <label class="form-label">Nome da Especialidade</label>
+          <input [ngModel]="especialidadeAtual().nome"
+                 (ngModelChange)="especialidadeAtual.update(v => ({...v, nome: $event}))"
+                 class="form-control" type="text">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Descrição</label>
+          <textarea [ngModel]="especialidadeAtual().descricao"
+                    (ngModelChange)="especialidadeAtual.update(v => ({...v, descricao: $event}))"
+                    class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button (click)="fecharFormulario()" class="btn btn-secondary">Cancelar</button>
+          <button (click)="salvar()" class="btn btn-success">Salvar Especialidade</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

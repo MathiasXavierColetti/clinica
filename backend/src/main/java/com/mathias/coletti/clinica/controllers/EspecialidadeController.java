@@ -35,6 +35,9 @@ public class EspecialidadeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        if (service.buscarPorId(id).isPresent()) { // Verifique se existe
+            return ResponseEntity.notFound().build();
+        }
         service.excluir(id);
         return ResponseEntity.noContent().build();
     }

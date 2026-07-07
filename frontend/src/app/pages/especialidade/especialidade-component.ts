@@ -1,14 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-import { Especialidade } from '../../services/especialidade';
-
-interface EspecialidadeModel {
-  id: number | null;
-  nome: string;
-  descricao: string;
-}
+import { EspecialidadeService } from '../../services/especialidades/especialidade.service';
+import { EspecialidadeModel } from '../class/especialidadeModel.model';
 
 @Component({
   selector: 'app-especialidade',
@@ -18,98 +12,53 @@ interface EspecialidadeModel {
   styleUrls: ['./especialidade-component.css'],
 })
 export class EspecialidadeComponent implements OnInit {
-  private service = inject(Especialidade);
+  private readonly service = inject(EspecialidadeService);
 
-  especialidades: EspecialidadeModel[] = [];
+  // Usando Signals para melhor performance e reatividade
+  especialidades = signal<EspecialidadeModel[]>([]);
+  exibirFormulario = signal(false);
+  modoEdicao = signal(false);
 
-  exibirFormulario = false;
-  modoEdicao = false;
-
-  especialidadeAtual: EspecialidadeModel = {
-    id: null,
-    nome: '',
-    descricao: '',
-  };
-
-  constructor() {
-    console.log('COMPONENTE CRIADO');
-  }
+  // Objeto inicial para resetar o form
+  private readonly objetoVazio: EspecialidadeModel = { id: null, nome: '', descricao: '' };
+  especialidadeAtual = signal<EspecialidadeModel>({ ...this.objetoVazio });
 
   ngOnInit(): void {
-    console.log('NGONINIT');
     this.carregarDados();
   }
 
-  ngOnDestroy(): void {
-    console.log('COMPONENTE DESTRUIDO');
-  }
   carregarDados(): void {
     this.service.listar().subscribe({
-      next: (data) => {
-        this.especialidades = [...data];
-
-        setTimeout(() => {
-          console.log('ARRAY NO COMPONENTE:', this.especialidades);
-          console.log('TAMANHO:', this.especialidades.length);
-        }, 2000);
-      },
+      next: (data) => this.especialidades.set(data),
+      error: (err) => console.error('Erro ao buscar dados:', err),
     });
   }
 
   abrirFormulario(item?: EspecialidadeModel): void {
-    this.modoEdicao = !!item;
-
-    this.especialidadeAtual = item
-      ? { ...item }
-      : {
-          id: null,
-          nome: '',
-          descricao: '',
-        };
-
-    this.exibirFormulario = true;
+    this.modoEdicao.set(!!item);
+    this.especialidadeAtual.set(item ? { ...item } : { ...this.objetoVazio });
+    this.exibirFormulario.set(true);
   }
 
   fecharFormulario(): void {
-    this.exibirFormulario = false;
-
-    this.especialidadeAtual = {
-      id: null,
-      nome: '',
-      descricao: '',
-    };
+    this.exibirFormulario.set(false);
+    this.especialidadeAtual.set({ ...this.objetoVazio });
   }
 
   salvar(): void {
-    this.service.salvar(this.especialidadeAtual).subscribe({
+    const data = this.especialidadeAtual();
+    this.service.salvar(data).subscribe({
       next: () => {
         this.carregarDados();
         this.fecharFormulario();
       },
-      error: (err) => {
-        console.error(err);
-        alert('Erro ao salvar especialidade.');
-      },
+      error: (err) => alert('Erro ao salvar: ' + (err.error?.message || err.message)),
     });
   }
 
-  excluir(id: number): void {
-    if (!confirm('Deseja realmente excluir esta especialidade?')) {
-      return;
+  excluir(id: number | null): void {
+    if (id && confirm('Deseja realmente excluir esta especialidade?')) {
+      this.service.excluir(id).subscribe(() => this.carregarDados());
     }
-
-    this.service.excluir(id).subscribe({
-      next: () => {
-        this.carregarDados();
-      },
-      error: (err) => {
-        console.error(err);
-        alert('Erro ao excluir especialidade.');
-      },
-    });
-  }
-
-  trackById(index: number, item: EspecialidadeModel): number | null {
-    return item.id;
   }
 }
